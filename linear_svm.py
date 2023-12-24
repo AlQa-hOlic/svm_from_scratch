@@ -43,3 +43,45 @@ class LinearSVM:
         return np.sign(
             approx
         )  # Return the sign of the decision function as class label
+
+
+class MultiClassLinearSVM:
+    def __init__(self, learning_rate=0.0001, lambda_param=0.01, n_iters=1000):
+        self.learning_rate = learning_rate
+        self.lambda_param = lambda_param
+        self.n_iters = n_iters
+        self.models = []
+
+    def fit(self, X, y):
+        self.classes = np.unique(y)
+        for class_label in self.classes:
+            # Create a binary target variable for each class
+            y_binary = np.where(y == class_label, 1, -1)
+            svm = LinearSVM(self.learning_rate, self.lambda_param, self.n_iters)
+            svm.fit(X, y_binary)
+            self.models.append(svm)
+
+    def predict(self, X):
+        # Store the results of each binary classifier
+        predictions = np.zeros((X.shape[0], len(self.models)))
+        for i, svm in enumerate(self.models):
+            predictions[:, i] = svm.predict(X)
+
+        # Choose the class with the highest decision function value
+        return np.argmax(predictions, axis=1)
+
+
+# from sklearn.datasets import load_iris
+# from sklearn.model_selection import train_test_split
+
+# iris = load_iris()
+# X, Y = iris.data, iris.target
+# X_train, X_test, y_train, y_test = train_test_split(
+#     X, Y, test_size=0.25, random_state=10
+# )
+
+# multi_svm = MultiClassLinearSVM()
+# multi_svm.fit(X_train, y_train)  # Assuming y_train has multiple classes
+# multi_class_predictions = multi_svm.predict(X_test)
+
+# print(f"Accuracy: {np.mean(multi_class_predictions == y_test)}")
